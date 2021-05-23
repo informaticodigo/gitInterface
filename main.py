@@ -1,16 +1,61 @@
 from os import system, popen, chdir
+from os.path import exists
 from tkinter import *
+from tkinter.filedialog import askdirectory
 from tkinter.ttk import Notebook, Combobox
 
 username = popen("echo %USERNAME%").read().replace("\n", "")
-
-
-def is_git_initialized():
-    return "not a git repository" not in popen("git status").read()
+directory = ""
 
 
 def go_path(path):
     chdir(path)
+
+
+def open_directory():
+    global directory
+    directory = askdirectory(initialdir="C:\\Users\\{}\\Documents".format(username))
+    go_path(directory)
+    if exists(directory+"/.git"):
+        branches = popen("git branch").read()[:-1]
+        branches = branches.replace("*", "").replace(" ", "").split("\n")
+        change_branch_text['values'] = branches
+        change_branch_text.set("master")
+        push_branch_text['values'] = branches
+        push_branch_text.set("master")
+    else:
+        system("git init")
+        change_branch_text['values'] = ["master", ]
+        change_branch_text.set("master")
+        push_branch_text['values'] = ["master", ]
+        push_branch_text.set("master")
+
+
+def add_gitignore():
+    def add():
+        open(directory+"/.gitignore", "w", encoding="utf-8").write(text.get("1.0", END))
+        gitignore_win.destroy()
+
+    gitignore_win = Toplevel(window)
+    text = Text(gitignore_win, font="Helvetica 20", width=60, height=6)
+    text.grid(row=0, column=0)
+    Button(gitignore_win, text="Add", font="Helvetica 20", bg="red", fg="white", command=lambda: add()).grid(row=1, column=0)
+
+
+def clone_into():
+    def clone():
+        global directory
+        go_path(direct)
+        system("git clone {}".format(path.get()))
+        directory = direct+"/{}".format(path.get().split("/")[-1].replace(".git", ""))
+        go_path(directory)
+        cloning_w.destroy()
+
+    direct = askdirectory(title="Where will it be clone?", initialdir="C:\\Users\\{}\\Documents".format(username))
+    cloning_w = Toplevel(window)
+    path = Entry(cloning_w, font="Helvetica 20")
+    path.grid(row=0, column=0)
+    Button(cloning_w, text="Clone!", font="Helvetica 20", bg="red", fg="white", command=lambda: clone()).grid(row=1, column=0)
 
 
 window = Tk()
@@ -18,8 +63,10 @@ window.title("Git Help | InformatiCódigo")
 
 menu = Menu(window, tearoff=False)
 menu_file = Menu(menu, tearoff=False)
-menu_file.add_command(label="Open directory", command=lambda: print())
-menu_file.add_command(label="Add .gitignore", command=lambda: print())
+menu_file.add_command(label="Open directory", command=lambda: open_directory())
+menu_file.add_command(label="Add .gitignore", command=lambda: add_gitignore())
+menu_file.add_separator()
+menu_file.add_command(label="HTTPS Clone repository", command=lambda: clone_into())
 menu.add_cascade(label="File", menu=menu_file)
 window.configure(menu=menu)
 
