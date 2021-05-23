@@ -3,9 +3,11 @@ from os.path import exists
 from tkinter import *
 from tkinter.filedialog import askdirectory
 from tkinter.ttk import Notebook, Combobox
+from re import compile as compile_re
 
 username = popen("echo %USERNAME%").read().replace("\n", "")
 directory = ""
+commits = {}
 
 
 def go_path(path):
@@ -14,21 +16,39 @@ def go_path(path):
 
 def open_directory():
     global directory
+    global commits
     directory = askdirectory(initialdir="C:\\Users\\{}\\Documents".format(username))
     go_path(directory)
     if exists(directory+"/.git"):
         branches = popen("git branch").read()[:-1]
         branches = branches.replace("*", "").replace(" ", "").split("\n")
+
+        text = popen("git log").read()[:-1]
+        search = compile_re("\n    .*")
+        search_id = compile_re("commit .*")
+        separators = search.findall(text)
+        ids = search_id.findall(text)
+
+        commits = {}
+        i = 0
+        for id_ in ids:
+            commits[separators[i]] = id_.replace("commit ", "")
+            i += 1
+
         change_branch_text['values'] = branches
         change_branch_text.set("master")
         push_branch_text['values'] = branches
         push_branch_text.set("master")
+        restore_commit_text['values'] = list(commits.keys())
+        restore_commit_text.set(list(commits.keys())[-1])
     else:
         system("git init")
         change_branch_text['values'] = ["master", ]
         change_branch_text.set("master")
         push_branch_text['values'] = ["master", ]
         push_branch_text.set("master")
+        restore_commit_text['values'] = ["", ]
+        restore_commit_text.set("")
 
 
 def add_gitignore():
@@ -76,6 +96,7 @@ nb.grid_propagate(False)
 
 git_actions = Frame(nb)
 project_line_visualization = Frame(nb)
+git_restore_actions = Frame(nb)
 
 # ###### Git save actions ##############################
 Button(git_actions, text="Add all files to Staging area", width=65, font="Helvetica 20", bg="red", fg="white", command=lambda: print()).grid(row=0, column=0, columnspan=2)
@@ -107,7 +128,18 @@ push_branch_text.grid(row=6, column=1)
 image_view = Label(project_line_visualization, font="Helvetica 20", width=65, height=12)
 image_view.grid(row=0, column=0)
 
+# ###### Git restore actions #################################
+
+Button(git_restore_actions, text="Restore File: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: print()).grid(row=0, column=0)
+restore_file_text = Entry(git_restore_actions, font="Helvetica 33", width=28)
+restore_file_text.grid(row=0, column=1)
+
+Button(git_restore_actions, text="Restore commit: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: print()).grid(row=1, column=0)
+restore_commit_text = Combobox(git_restore_actions, font="Helvetica 28", width=31, state="readonly")
+restore_commit_text.grid(row=1, column=1)
+
 nb.add(git_actions, text="Git save commands")
+nb.add(git_restore_actions, text="Git restore commands")
 nb.add(project_line_visualization, text="View project line")
 
 window.mainloop()
