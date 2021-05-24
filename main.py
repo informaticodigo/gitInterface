@@ -41,7 +41,10 @@ def open_directory():
         push_branch_text['values'] = branches
         push_branch_text.set("master")
         restore_commit_text['values'] = list(commits.keys())
-        restore_commit_text.set(list(commits.keys())[-1])
+        try:
+            restore_commit_text.set(list(commits.keys())[-1])
+        except:
+            restore_commit_text.set("")
     else:
         system("git init")
         change_branch_text['values'] = ["master", ]
@@ -85,12 +88,24 @@ def git_add():
 
 
 def git_commit():
-    system("git commit -m \"{}\"".format(commit_text.get()))
+    global commits
+    cmmt = commit_text.get()
+    system("git commit -m \"{}\"".format(cmmt))
+    actual = list(restore_commit_text['values'])
+    actual.append(cmmt)
+    restore_commit_text['values'] = actual
+    search_id = compile_re("commit .*")
+    text = popen("git log").read()[:-1]
+    commits[cmmt] = search_id.findall(text)[0]
     showinfo("Succeeded!", "The commit changes operation was successfully executed.")
 
 
 def git_new_branch():
     system("git branch {}".format(new_branch_text.get()))
+    all_branches = list(change_branch_text['values'])
+    all_branches.append(new_branch_text.get())
+    change_branch_text['values'] = all_branches
+    push_branch_text['values'] = all_branches
     showinfo("Succeeded!", "The creating new branch operation was successfully executed.")
 
 
@@ -121,6 +136,13 @@ def git_restore_file():
 
 def git_restore_commit():
     system("git revert {}".format(commits[restore_commit_text.get()]))
+    all_commits = list(restore_commit_text['values'])
+    all_commits.remove(restore_commit_text.get())
+    restore_commit_text['values'] = all_commits
+    try:
+        restore_commit_text.set(all_commits[0])
+    except:
+        restore_commit_text.set("")
     showinfo("Succeeded!", "The restoring operation was successfully executed.")
 
 
@@ -141,7 +163,6 @@ nb.grid(row=0, column=0)
 nb.grid_propagate(False)
 
 git_actions = Frame(nb)
-project_line_visualization = Frame(nb)
 git_restore_actions = Frame(nb)
 
 # ###### Git save actions ##############################
@@ -170,10 +191,6 @@ Button(git_actions, text="Push to remote origin: ", font="Helvetica 20", width=2
 push_branch_text = Combobox(git_actions, font="Helvetica 28", width=31, state="readonly")
 push_branch_text.grid(row=6, column=1)
 
-# ###### Git view project line ##############################
-image_view = Label(project_line_visualization, font="Helvetica 20", width=65, height=12)
-image_view.grid(row=0, column=0)
-
 # ###### Git restore actions #################################
 
 Button(git_restore_actions, text="Restore File last modification", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: git_restore_file()).grid(row=0, column=0)
@@ -186,6 +203,5 @@ restore_commit_text.grid(row=1, column=1)
 
 nb.add(git_actions, text="Git save commands")
 nb.add(git_restore_actions, text="Git restore commands")
-nb.add(project_line_visualization, text="View project line")
 
 window.mainloop()
