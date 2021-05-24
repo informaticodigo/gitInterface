@@ -2,6 +2,7 @@ from os import system, popen, chdir
 from os.path import exists
 from tkinter import *
 from tkinter.filedialog import askdirectory
+from tkinter.messagebox import showinfo
 from tkinter.ttk import Notebook, Combobox
 from re import compile as compile_re
 
@@ -78,6 +79,51 @@ def clone_into():
     Button(cloning_w, text="Clone!", font="Helvetica 20", bg="red", fg="white", command=lambda: clone()).grid(row=1, column=0)
 
 
+def git_add():
+    system("git add .")
+    showinfo("Succeeded!", "The adding changes operation was successfully executed.")
+
+
+def git_commit():
+    system("git commit -m \"{}\"".format(commit_text.get()))
+    showinfo("Succeeded!", "The commit changes operation was successfully executed.")
+
+
+def git_new_branch():
+    system("git branch {}".format(new_branch_text.get()))
+    showinfo("Succeeded!", "The creating new branch operation was successfully executed.")
+
+
+def git_change_branch():
+    system("git checkout {}".format(change_branch_text.get()))
+    showinfo("Succeeded!", "The changing branch operation was successfully executed.")
+
+
+def git_set_origin():
+    system("git remote add origin {}".format(set_origin_text.get()))
+    showinfo("Succeeded!", "The set origin operation was successfully executed.")
+
+
+def git_update_origin():
+    system("git remote set-url origin {}".format(update_origin_text.get()))
+    showinfo("Succeeded!", "The update origin operation was successfully executed.")
+
+
+def git_push_origin():
+    system("git push origin {}".format(push_branch_text.get()))
+    showinfo("Succeeded!", "The push operation was successfully executed.")
+
+
+def git_restore_file():
+    system("git checkout -- {}".format(restore_file_text.get()))
+    showinfo("Succeeded!", "The restoring operation was successfully executed.")
+
+
+def git_restore_commit():
+    system("git revert {}".format(commits[restore_commit_text.get()]))
+    showinfo("Succeeded!", "The restoring operation was successfully executed.")
+
+
 window = Tk()
 window.title("Git Help | InformatiCódigo")
 
@@ -99,28 +145,28 @@ project_line_visualization = Frame(nb)
 git_restore_actions = Frame(nb)
 
 # ###### Git save actions ##############################
-Button(git_actions, text="Add all files to Staging area", width=65, font="Helvetica 20", bg="red", fg="white", command=lambda: print()).grid(row=0, column=0, columnspan=2)
-Button(git_actions, text="Commit all files to repository", width=23, font="Helvetica 20", bg="red", fg="white", command=lambda: print()).grid(row=1, column=0)
+Button(git_actions, text="Add all files to Staging area", width=65, font="Helvetica 20", bg="red", fg="white", command=lambda: git_add()).grid(row=0, column=0, columnspan=2)
+Button(git_actions, text="Commit all files to repository", width=23, font="Helvetica 20", bg="red", fg="white", command=lambda: git_commit()).grid(row=1, column=0)
 commit_text = Entry(git_actions, font="Helvetica 33", width=28)
 commit_text.grid(row=1, column=1)
 
-Button(git_actions, text="Create new branch: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: print()).grid(row=2, column=0)
+Button(git_actions, text="Create new branch: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: git_new_branch()).grid(row=2, column=0)
 new_branch_text = Entry(git_actions, font="Helvetica 33", width=28)
 new_branch_text.grid(row=2, column=1)
 
-Button(git_actions, text="Change to other branch: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: print()).grid(row=3, column=0)
+Button(git_actions, text="Change to other branch: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: git_change_branch()).grid(row=3, column=0)
 change_branch_text = Combobox(git_actions, font="Helvetica 28", width=31, state="readonly")
 change_branch_text.grid(row=3, column=1)
 
-Button(git_actions, text="Set remote origin: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: print()).grid(row=4, column=0)
+Button(git_actions, text="Set remote origin: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: git_set_origin()).grid(row=4, column=0)
 set_origin_text = Entry(git_actions, font="Helvetica 33", width=28)
 set_origin_text.grid(row=4, column=1)
 
-Button(git_actions, text="Update remote origin: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: print()).grid(row=5, column=0)
+Button(git_actions, text="Update remote origin: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: git_update_origin()).grid(row=5, column=0)
 update_origin_text = Entry(git_actions, font="Helvetica 33", width=28)
 update_origin_text.grid(row=5, column=1)
 
-Button(git_actions, text="Push to remote origin: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: print()).grid(row=6, column=0)
+Button(git_actions, text="Push to remote origin: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: git_push_origin()).grid(row=6, column=0)
 push_branch_text = Combobox(git_actions, font="Helvetica 28", width=31, state="readonly")
 push_branch_text.grid(row=6, column=1)
 
@@ -130,11 +176,11 @@ image_view.grid(row=0, column=0)
 
 # ###### Git restore actions #################################
 
-Button(git_restore_actions, text="Restore File: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: print()).grid(row=0, column=0)
+Button(git_restore_actions, text="Restore File last modification", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: git_restore_file()).grid(row=0, column=0)
 restore_file_text = Entry(git_restore_actions, font="Helvetica 33", width=28)
 restore_file_text.grid(row=0, column=1)
 
-Button(git_restore_actions, text="Restore commit: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: print()).grid(row=1, column=0)
+Button(git_restore_actions, text="Restore commit: ", font="Helvetica 20", width=23, bg="red", fg="white", command=lambda: git_restore_commit()).grid(row=1, column=0)
 restore_commit_text = Combobox(git_restore_actions, font="Helvetica 28", width=31, state="readonly")
 restore_commit_text.grid(row=1, column=1)
 
